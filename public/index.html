@@ -1,0 +1,1263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Club OS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#FAFAFA; --surface:#FFFFFF; --surface-alt:#F4F4F6;
+    --border:#E8E8EC; --border-soft:#F0F0F3;
+    --text:#18181B; --text-soft:#6B7280; --text-faint:#9CA3AF;
+    --sidebar-bg:#121214; --sidebar-text:#E4E4E7; --sidebar-text-soft:#8A8A93; --sidebar-line:rgba(255,255,255,0.08);
+    --accent:#6D5CE0; --accent-hover:#5D4CD6; --accent-contrast:#FFFFFF; --accent-soft:#EFECFC;
+    --gold:#6D5CE0; --gold-ink:#FFFFFF; /* legacy variable names kept so existing markup needs no changes */
+    --turf:#16A34A; --turf-bg:#E9F8EF;
+    --amber:#D97706; --amber-bg:#FEF3E2;
+    --rust:#DC2626; --rust-bg:#FDECEC;
+    --radius:10px; --radius-lg:16px; --radius-sm:7px;
+    --shadow-sm:0 1px 2px rgba(20,20,30,0.04), 0 1px 1px rgba(20,20,30,0.03);
+    --shadow-md:0 8px 24px rgba(20,20,30,0.07), 0 2px 6px rgba(20,20,30,0.04);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-size:14.5px;line-height:1.55;-webkit-font-smoothing:antialiased;}
+  h1,h2,h3,.disp{font-family:'Space Grotesk',sans-serif;font-weight:700;letter-spacing:-0.01em;margin:0;}
+  .mono{font-family:'JetBrains Mono',monospace;}
+  a{color:inherit;} button{font-family:inherit;cursor:pointer;} input,select,textarea{font-family:inherit;font-size:14.5px;}
+  ::selection{background:var(--accent-soft);color:var(--accent);}
+
+  #shell{display:flex;min-height:100vh;}
+  #sidebar{width:264px;flex-shrink:0;background:var(--sidebar-bg);color:var(--sidebar-text);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto;}
+  .brand{padding:24px 22px 18px;border-bottom:1px solid var(--sidebar-line);}
+  .brand .mark{display:flex;align-items:center;gap:9px;}
+  .brand .dot{width:9px;height:9px;background:var(--accent);border-radius:50%;flex-shrink:0;}
+  .brand h1{font-size:19px;color:var(--sidebar-text);line-height:1.25;}
+  .brand .sub{font-size:11.5px;color:var(--sidebar-text-soft);margin-top:5px;font-weight:500;}
+
+  .nav-group{padding:18px 14px;border-bottom:1px solid var(--sidebar-line);}
+  .nav-label{font-size:11px;letter-spacing:0.04em;color:var(--sidebar-text-soft);padding:0 10px 10px;font-weight:600;}
+  .nav-item{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:none;border:none;color:var(--sidebar-text-soft);padding:9px 12px;border-radius:8px;font-size:13.5px;font-weight:500;margin-bottom:2px;transition:background 0.12s;}
+  .nav-item .sq{width:5px;height:5px;background:var(--sidebar-text-soft);flex-shrink:0;border-radius:50%;}
+  .nav-item:hover{background:rgba(255,255,255,0.06);color:var(--sidebar-text);}
+  .nav-item.active{background:var(--accent);color:#fff;font-weight:600;}
+  .nav-item.active .sq{background:#fff;}
+  .nav-item.locked{opacity:0.4;}
+  .nav-item .lockmark{margin-left:auto;font-size:9.5px;font-family:'JetBrains Mono',monospace;letter-spacing:0.05em;}
+
+  .switcher{margin-top:auto;padding:16px 16px 20px;border-top:1px solid var(--sidebar-line);}
+  .switcher .role-toggle{display:flex;background:rgba(255,255,255,0.06);border-radius:9px;padding:3px;margin-bottom:10px;}
+  .switcher .role-toggle button{flex:1;border:none;background:none;color:var(--sidebar-text-soft);padding:7px 4px;font-size:12px;font-weight:600;border-radius:7px;}
+  .switcher .role-toggle button.active{background:var(--accent);color:#fff;}
+  .whoami{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 12px;background:rgba(255,255,255,0.05);border-radius:9px;}
+  .whoami .who-name{font-size:13px;font-weight:600;color:var(--sidebar-text);}
+  .whoami .who-role{font-size:11px;color:var(--sidebar-text-soft);}
+  .whoami button{background:none;border:none;color:var(--sidebar-text-soft);font-size:11.5px;padding:0;}
+  .whoami button:hover{color:#fff;}
+
+  #main{flex:1;min-width:0;}
+  .topbar{display:flex;align-items:center;justify-content:space-between;padding:20px 36px;border-bottom:1px solid var(--border);background:var(--bg);position:sticky;top:0;z-index:5;gap:14px;flex-wrap:wrap;}
+  .topbar h2{font-size:22px;}
+  .topbar .meta{font-size:12.5px;color:var(--text-faint);margin-top:3px;font-weight:500;}
+  .topbar-right{display:flex;align-items:center;gap:10px;}
+  .sync-pill{font-size:11.5px;color:var(--text-faint);display:flex;align-items:center;gap:6px;font-weight:500;}
+  .sync-pill .sdot{width:6px;height:6px;border-radius:50%;background:var(--turf);}
+
+  .bell-wrap{position:relative;}
+  .bell-btn{width:36px;height:36px;border-radius:var(--radius);border:1px solid var(--border);background:var(--surface);position:relative;display:flex;align-items:center;justify-content:center;font-size:15px;box-shadow:var(--shadow-sm);}
+  .bell-dot{position:absolute;top:4px;right:5px;background:var(--rust);color:#fff;font-size:9px;font-weight:700;min-width:14px;height:14px;border-radius:7px;display:flex;align-items:center;justify-content:center;padding:0 3px;}
+  .notif-panel{position:absolute;right:0;top:44px;width:330px;max-height:420px;overflow-y:auto;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:var(--shadow-md);z-index:20;padding:8px;}
+  .notif-panel .np-head{display:flex;justify-content:space-between;align-items:center;padding:8px 8px 10px;border-bottom:1px solid var(--border-soft);margin-bottom:6px;}
+  .notif-panel .np-head h4{font-family:'Inter';font-size:13px;font-weight:700;}
+  .notif-panel .np-head button{background:none;border:none;font-size:11.5px;color:var(--accent);font-weight:600;}
+  .notif-item{padding:10px 8px;border-radius:8px;font-size:12.5px;margin-bottom:3px;}
+  .notif-item.unread{background:var(--accent-soft);}
+  .notif-item .n-text{color:var(--text);}
+  .notif-item .n-date{color:var(--text-faint);font-size:10.5px;margin-top:3px;}
+  .notif-empty{padding:24px 10px;text-align:center;color:var(--text-faint);font-size:12.5px;}
+
+  .content{padding:28px 36px 64px;max-width:1200px;}
+  .banner{background:var(--amber-bg);color:var(--amber);border:1px solid rgba(217,119,6,0.25);border-radius:var(--radius);padding:11px 16px;margin:0 0 16px;font-size:13px;display:flex;justify-content:space-between;gap:10px;align-items:center;}
+
+  .ticker-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px 20px;margin-bottom:24px;overflow-x:auto;box-shadow:var(--shadow-sm);}
+  .ticker-label{font-size:12px;color:var(--text-faint);margin-bottom:13px;display:flex;align-items:center;gap:7px;font-weight:600;}
+  .ticker-label .blink{width:6px;height:6px;background:var(--rust);border-radius:50%;animation:blink 1.6s infinite;}
+  @keyframes blink{0%,100%{opacity:1;}50%{opacity:0.25;}}
+  .ticker{display:flex;gap:10px;min-width:min-content;}
+  .tblock{flex-shrink:0;min-width:148px;background:var(--surface-alt);border:1px solid var(--border-soft);padding:12px 14px;border-radius:12px;}
+  .tblock.warn{background:var(--amber-bg);border-color:rgba(217,119,6,0.18);} .tblock.crit{background:var(--rust-bg);border-color:rgba(220,38,38,0.18);}
+  .tblock .tnum{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:17px;color:var(--text);line-height:1;}
+  .tblock.warn .tnum{color:var(--amber);} .tblock.crit .tnum{color:var(--rust);}
+  .tblock .ttitle{font-size:12px;color:var(--text-soft);margin-top:6px;font-weight:500;}
+
+  .grid{display:grid;gap:16px;} .grid-3{grid-template-columns:repeat(3,1fr);} .grid-2{grid-template-columns:2fr 1fr;}
+  @media (max-width:900px){.grid-3{grid-template-columns:1fr 1fr;}.grid-2{grid-template-columns:1fr;}}
+  @media (max-width:600px){.grid-3{grid-template-columns:1fr;}}
+
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px 22px;box-shadow:var(--shadow-sm);}
+  .card h3{font-size:15px;font-weight:700;margin-bottom:4px;}
+  .card .eyebrow{font-size:11.5px;font-weight:600;color:var(--text-faint);margin-bottom:8px;}
+  .section-title{display:flex;align-items:center;justify-content:space-between;margin:32px 0 14px;flex-wrap:wrap;gap:8px;}
+  .section-title:first-child{margin-top:0;}
+  .section-title h3{font-family:'Space Grotesk';font-size:17px;font-weight:700;}
+
+  .stat-big{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:28px;line-height:1;margin:6px 0 8px;}
+  .bar{height:6px;background:var(--border-soft);border-radius:3px;overflow:hidden;margin-top:6px;}
+  .bar > div{height:100%;background:var(--turf);border-radius:3px;} .bar.amber > div{background:var(--amber);} .bar.rust > div{background:var(--rust);}
+
+  table{width:100%;border-collapse:collapse;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow-sm);}
+  thead th{text-align:left;font-size:11px;letter-spacing:0.02em;color:var(--text-faint);padding:12px 16px;border-bottom:1px solid var(--border);background:var(--surface-alt);font-weight:600;}
+  tbody td{padding:13px 16px;border-bottom:1px solid var(--border-soft);font-size:13.5px;vertical-align:middle;}
+  tbody tr:last-child td{border-bottom:none;} tbody tr:hover{background:var(--surface-alt);}
+  .name-cell{font-weight:600;} .sub-cell{color:var(--text-faint);font-size:12px;}
+
+  .tag{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:600;padding:4px 9px;border-radius:20px;}
+  .tag .d{width:6px;height:6px;border-radius:50%;}
+  .tag.paid,.tag.good{background:var(--turf-bg);color:var(--turf);} .tag.paid .d,.tag.good .d{background:var(--turf);}
+  .tag.warn{background:var(--amber-bg);color:var(--amber);} .tag.warn .d{background:var(--amber);}
+  .tag.bad{background:var(--rust-bg);color:var(--rust);} .tag.bad .d{background:var(--rust);}
+  .tag.neutral{background:var(--surface-alt);color:var(--text-soft);} .tag.neutral .d{background:var(--text-faint);}
+  .officer-tag{background:var(--accent-soft);color:var(--accent);font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:20px;}
+
+  .btn{border:1px solid var(--accent);background:var(--accent);color:#fff;padding:9px 15px;border-radius:var(--radius);font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:6px;transition:filter 0.12s, background 0.12s;}
+  .btn:hover{background:var(--accent-hover);border-color:var(--accent-hover);}
+  .btn.gold{background:var(--accent);border-color:var(--accent);color:#fff;} .btn.gold:hover{background:var(--accent-hover);}
+  .btn.ghost{background:var(--surface);color:var(--text);border:1px solid var(--border);} .btn.ghost:hover{border-color:var(--text-faint);background:var(--surface-alt);}
+  .btn.sm{padding:6px 11px;font-size:12px;}
+  .btn.danger{background:var(--surface);color:var(--rust);border:1px solid rgba(220,38,38,0.25);} .btn.danger:hover{background:var(--rust-bg);}
+  .btn:disabled{opacity:0.45;cursor:not-allowed;}
+  .btn-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+
+  .form-panel{background:var(--surface-alt);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px 22px;margin-bottom:20px;}
+  .form-panel.hidden{display:none;}
+  .field-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:12px;}
+  .field label{display:block;font-size:11.5px;font-weight:600;color:var(--text-soft);margin-bottom:6px;}
+  .field input,.field select,.field textarea{width:100%;padding:9px 11px;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);color:var(--text);}
+  .field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft);}
+  .field textarea{resize:vertical;min-height:70px;}
+  .checkline{display:flex;align-items:center;gap:8px;font-size:13px;margin-top:6px;color:var(--text-soft);}
+  .checkline input{width:15px;height:15px;accent-color:var(--accent);}
+
+  .divider{height:1px;background:var(--border);margin:24px 0;}
+  .empty{padding:32px;text-align:center;color:var(--text-faint);font-size:13px;border:1px dashed var(--border);border-radius:var(--radius-lg);}
+  .restricted{padding:70px 30px;text-align:center;}
+  .restricted .disp{font-size:24px;margin-bottom:10px;}
+  .restricted p{color:var(--text-soft);max-width:420px;margin:0 auto 20px;}
+  .kv{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border-soft);font-size:13px;}
+  .kv:last-child{border-bottom:none;} .kv .k{color:var(--text-soft);} .kv .v{font-weight:600;}
+  .ann-item{border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px 20px;margin-bottom:12px;background:var(--surface);box-shadow:var(--shadow-sm);}
+  .ann-item.unread{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent);}
+  .ann-item .ann-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;}
+  .ann-item h4{font-family:'Inter';font-size:14.5px;font-weight:700;margin:0 0 4px;}
+  .ann-item .body-text{color:var(--text-soft);font-size:13.5px;margin:6px 0 12px;}
+  .ann-item .meta{font-size:11px;color:var(--text-faint);}
+  .rsvp-row{display:flex;gap:6px;}
+  .rsvp-btn{padding:7px 13px;border-radius:var(--radius);border:1px solid var(--border);background:var(--surface);font-size:12.5px;font-weight:600;}
+  .rsvp-btn.sel-yes{background:var(--turf);border-color:var(--turf);color:#fff;}
+  .rsvp-btn.sel-no{background:var(--rust);border-color:var(--rust);color:#fff;}
+  .rsvp-btn.sel-maybe{background:var(--amber);border-color:var(--amber);color:#fff;}
+  .perm-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin-top:12px;}
+  .perm-chip{display:flex;align-items:center;gap:7px;font-size:12.5px;padding:7px 9px;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface-alt);}
+  .perm-chip input{width:14px;height:14px;accent-color:var(--accent);}
+  .stripe-badge{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;color:var(--text-faint);margin-top:8px;}
+
+  .invite-toggle{width:100%;background:none;border:1px solid var(--sidebar-line);color:var(--sidebar-text-soft);padding:9px;border-radius:9px;font-size:12px;font-weight:600;margin-bottom:10px;}
+  .invite-toggle:hover{color:#fff;border-color:rgba(255,255,255,0.2);}
+  .invite-panel{background:rgba(255,255,255,0.05);border-radius:9px;padding:13px;margin-bottom:10px;}
+  .invite-label{font-size:10.5px;color:var(--sidebar-text-soft);margin-bottom:7px;font-weight:600;}
+  .invite-code{font-family:'JetBrains Mono',monospace;font-size:19px;font-weight:600;color:var(--accent);letter-spacing:0.1em;text-align:center;padding:9px;background:rgba(0,0,0,0.25);border-radius:8px;}
+  .invite-help{font-size:10.5px;color:var(--sidebar-text-soft);margin-top:9px;line-height:1.5;}
+
+  /* ---------- centered full-screen states (loading / auth / club choice) ---------- */
+  .full-screen{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:var(--bg);overflow-y:auto;padding:32px 20px;z-index:1;}
+  .center-card{width:100%;max-width:420px;margin:auto;}
+  .brandmark{display:flex;align-items:center;justify-content:center;gap:9px;margin-bottom:8px;}
+  .brandmark .dot{width:10px;height:10px;background:var(--accent);border-radius:50%;}
+  .brandmark span{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:22px;color:var(--text);}
+  .center-sub{text-align:center;color:var(--text-faint);font-size:13.5px;margin-bottom:30px;}
+  .auth-card{background:var(--surface);border:1px solid var(--border);border-radius:20px;box-shadow:var(--shadow-md);padding:8px;}
+  .auth-tabs{display:flex;gap:4px;padding:6px 6px 0;}
+  .auth-tabs button{flex:1;padding:11px;border:none;background:none;border-radius:12px;font-size:13px;font-weight:600;color:var(--text-soft);}
+  .auth-tabs button.active{background:var(--surface-alt);color:var(--text);}
+  .clerk-mount{padding:8px;min-height:280px;}
+  .refresh-hint{text-align:center;margin-top:18px;font-size:12.5px;color:var(--text-faint);}
+  .refresh-hint button{background:none;border:none;color:var(--accent);font-weight:600;padding:0;font-size:12.5px;}
+
+  .choice-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:22px;}
+  @media (max-width:520px){.choice-grid{grid-template-columns:1fr;}}
+  .choice-card{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:26px 22px;box-shadow:var(--shadow-sm);text-align:left;cursor:pointer;transition:box-shadow 0.15s, border-color 0.15s;}
+  .choice-card:hover{box-shadow:var(--shadow-md);border-color:var(--accent);}
+  .choice-card .ci{width:38px;height:38px;border-radius:10px;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:18px;margin-bottom:14px;font-weight:700;font-family:'Space Grotesk';}
+  .choice-card h3{font-size:16px;margin-bottom:6px;}
+  .choice-card p{font-size:13px;color:var(--text-soft);margin:0;line-height:1.5;}
+  .club-list-item{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;background:var(--surface);border:1px solid var(--border);border-radius:14px;margin-bottom:10px;box-shadow:var(--shadow-sm);}
+  .club-list-item h4{font-size:14.5px;font-weight:700;margin:0;}
+  .back-link{background:none;border:none;color:var(--text-faint);font-size:12.5px;font-weight:600;margin-bottom:18px;padding:0;display:flex;align-items:center;gap:5px;}
+  .back-link:hover{color:var(--text);}
+  .spin{width:24px;height:24px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 0.8s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .loading-copy{color:var(--text-faint);font-size:13px;margin-top:14px;text-align:center;}
+
+  #toasts{position:fixed;bottom:20px;right:20px;z-index:100;display:flex;flex-direction:column;gap:8px;align-items:flex-end;}
+  .toast{background:var(--text);color:#fff;padding:12px 16px;border-radius:var(--radius);font-size:13px;box-shadow:var(--shadow-md);border-left:3px solid var(--accent);animation:slidein 0.25s ease;max-width:320px;}
+  .toast.ok{border-left-color:var(--turf);} .toast.err{border-left-color:var(--rust);}
+  @keyframes slidein{from{transform:translateX(20px);opacity:0;}to{transform:translateX(0);opacity:1;}}
+
+  @media (max-width:820px){
+    #shell{flex-direction:column;}
+    #sidebar{width:100%;height:auto;position:relative;flex-direction:row;flex-wrap:wrap;padding:10px;}
+    .brand{border:none;padding:8px 10px;width:100%;}
+    .nav-group{border:none;display:flex;flex-wrap:wrap;gap:4px;padding:8px 10px;}
+    .nav-item{width:auto;}
+    .switcher{width:100%;border:none;display:flex;gap:12px;align-items:center;padding:10px;flex-wrap:wrap;}
+    .topbar{padding:16px 18px;} .content{padding:18px;}
+  }
+  button:focus-visible,.rsvp-btn:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:1px;}
+</style>
+</head>
+<body>
+<div id="toasts"></div>
+<div id="shell"></div>
+
+<script>
+/* =====================================================================
+   API
+===================================================================== */
+async function api(method, url, body){
+  var opts = { method: method, headers:{}, credentials:'same-origin' };
+  if(body !== undefined){ opts.headers['Content-Type']='application/json'; opts.body = JSON.stringify(body); }
+  var res;
+  try{ res = await fetch(url, opts); }
+  catch(e){ throw new Error('Could not reach the server. Is it running?'); }
+  var data = null;
+  try{ data = await res.json(); }catch(e){ /* no body */ }
+  if(!res.ok){ throw new Error((data && data.error) || ('Request failed (' + res.status + ')')); }
+  return data;
+}
+
+var NAV_ADMIN = [
+  {key:'dashboard', label:'Dashboard', perm:'dashboard'},
+  {key:'members', label:'Members', perm:'members'},
+  {key:'attendance', label:'Attendance', perm:'members'},
+  {key:'payments', label:'Payments & Dues', perm:'payments'},
+  {key:'deadlines', label:'Deadlines & Competitions', perm:'deadlines'},
+  {key:'announcements', label:'Announcements', perm:'announcements'},
+  {key:'officers', label:'Officers & Roles', perm:'roles'},
+  {key:'reports', label:'Reports', perm:'payments'}
+];
+var NAV_STUDENT = [
+  {key:'sdash', label:'My Dashboard'}, {key:'spay', label:'Pay Dues'}, {key:'sann', label:'Announcements'},
+  {key:'sevents', label:'Events & RSVP'}, {key:'satt', label:'My Attendance'}, {key:'sprof', label:'Profile'}
+];
+
+/* =====================================================================
+   STATE
+===================================================================== */
+var UI = { stage:'loading', view:'dashboard', viewMode:'officer', formOpen:{}, notifOpen:false, inviteOpen:false, feedbackOpen:false, resetArmed:false, leaveArmed:false, deleteArmed:false, clubChoiceMode:'', clubFormError:'', errorMessage:'', editingMemberId:null, editingDeadlineId:null, editingAnnId:null };
+var ME = null;          // {signedIn, club, member, permissions}
+var DATA = null;        // {club, members, deadlines, completion, rsvp, announcements, permissions, myNotifications, stripeEnabled}
+var MY_CLUBS = [];      // [{id, name}] every club this Clerk user belongs to
+var CLERK = null;       // the loaded Clerk instance
+var LAST_SYNC_AT = null;
+var POLL_TIMER = null;
+
+/* =====================================================================
+   HELPERS
+===================================================================== */
+function parseDate(s){ var p=s.split('-').map(Number); return new Date(p[0],p[1]-1,p[2]); }
+function today0(){ var d=new Date(); d.setHours(0,0,0,0); return d; }
+function daysUntil(s){ return Math.round((parseDate(s)-today0())/86400000); }
+function fmtDate(s){ return parseDate(s).toLocaleDateString('en-US',{month:'short',day:'numeric'}); }
+function fmtDateTime(iso){ var d=new Date(iso); return d.toLocaleDateString('en-US',{month:'short',day:'numeric'}) + ' · ' + d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}); }
+function fmtMoney(n){ return '$'+Number(n).toFixed(0); }
+function memberById(id){ return DATA.members.find(function(m){return m.id===id;}); }
+function deadlineById(id){ return DATA.deadlines.find(function(d){return d.id===id;}); }
+function esc(s){ var d=document.createElement('div'); d.textContent=(s==null?'':s); return d.innerHTML; }
+
+function urgency(n){ if(n<0) return 'crit'; if(n<=4) return 'warn'; return 'ok'; }
+function daysLabel(n){ if(n<0) return 'OVERDUE ' + Math.abs(n) + 'D'; if(n===0) return 'DUE TODAY'; return 'D-'+n; }
+
+function complianceFor(deadlineId){
+  var map = DATA.completion[deadlineId]; if(!map) return {done:0,total:0,pct:0};
+  var ids = Object.keys(map); var done = ids.filter(function(id){return map[id];}).length;
+  return {done:done, total:ids.length, pct: ids.length? Math.round(done/ids.length*100):0};
+}
+function memberIncompleteItems(memberId){
+  var out = [];
+  DATA.deadlines.forEach(function(d){
+    if(d.type==='event') return;
+    var map = DATA.completion[d.id];
+    if(map && map[memberId]===0){ out.push(d); }
+  });
+  return out;
+}
+function attendancePct(memberId){
+  var total = DATA.attendanceDates.length;
+  if(!total) return 0;
+  var present = DATA.attendanceDates.reduce(function(sum, d){ return sum + ((DATA.attendance[d.id] && DATA.attendance[d.id][memberId]) ? 1 : 0); }, 0);
+  return Math.round(present/total*100);
+}
+function atRiskMembers(){
+  return DATA.members.filter(function(m){return !m.officerRole;}).map(function(m){
+    var missing = memberIncompleteItems(m.id); var att = attendancePct(m.id);
+    return {m:m, missing:missing, att:att, flag: missing.length>=2 || att<50};
+  }).filter(function(r){return r.flag;}).sort(function(a,b){return b.missing.length-a.missing.length;});
+}
+function officerPerms(id){ return DATA.permissions[id] || {dashboard:true,members:false,payments:false,deadlines:false,announcements:false,roles:false}; }
+function canView(navKey){
+  var m = ME.member; if(!m || !m.officerRole) return true;
+  var item = NAV_ADMIN.find(function(n){return n.key===navKey;});
+  if(!item) return true;
+  return !!officerPerms(m.id)[item.perm];
+}
+function unreadCount(){ return DATA.myNotifications.filter(function(n){return !n.read;}).length; }
+
+function toast(msg, ok){
+  var el = document.createElement('div');
+  el.className = 'toast' + (ok===true?' ok':ok===false?' err':'');
+  el.textContent = msg;
+  document.getElementById('toasts').appendChild(el);
+  setTimeout(function(){ el.remove(); }, 3600);
+}
+function errToast(err){ toast(err && err.message ? err.message : 'Something went wrong.', false); }
+
+/* =====================================================================
+   DATA REFRESH + POLLING
+===================================================================== */
+async function refreshMe(){ ME = await api('GET', '/api/me'); }
+async function refreshState(){ DATA = await api('GET', '/api/state'); LAST_SYNC_AT = Date.now(); }
+
+async function pollLoop(){
+  if(UI.stage !== 'app') return;
+  var typing = document.activeElement && /INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName);
+  var formOpen = Object.keys(UI.formOpen).some(function(k){return UI.formOpen[k];});
+  if(typing || formOpen) return;
+  try{ await refreshState(); render(); }catch(e){ /* stay on last known state if a poll fails */ }
+}
+function startPolling(){ if(POLL_TIMER) clearInterval(POLL_TIMER); POLL_TIMER = setInterval(pollLoop, 7000); }
+function stopPolling(){ if(POLL_TIMER) clearInterval(POLL_TIMER); POLL_TIMER = null; }
+
+/* =====================================================================
+   CLERK — loading the SDK and mounting its prebuilt auth UI
+===================================================================== */
+function injectScript(src, attrs){
+  return new Promise(function(resolve, reject){
+    var s = document.createElement('script');
+    s.src = src; s.async = true; s.crossOrigin = 'anonymous';
+    if(attrs) Object.keys(attrs).forEach(function(k){ s.setAttribute(k, attrs[k]); });
+    s.onload = function(){ resolve(); };
+    s.onerror = function(){ reject(new Error('Failed to load ' + src)); };
+    document.head.appendChild(s);
+  });
+}
+function clerkFrontendApiDomain(publishableKey){
+  var encoded = publishableKey.split('_')[2] || '';
+  try{ return atob(encoded).slice(0, -1); }catch(e){ return null; }
+}
+async function initClerk(publishableKey){
+  var domain = clerkFrontendApiDomain(publishableKey);
+  if(!domain) throw new Error('That Clerk publishable key doesn\'t look right — check it was copied correctly into .env.');
+  await injectScript('https://' + domain + '/npm/@clerk/ui@1/dist/ui.browser.js');
+  await injectScript('https://' + domain + '/npm/@clerk/clerk-js@6/dist/clerk.browser.js', { 'data-clerk-publishable-key': publishableKey });
+  await window.Clerk.load({ ui: { ClerkUI: window.__internal_ClerkUICtor } });
+  return window.Clerk;
+}
+function clerkAppearance(){
+  return { variables: { colorPrimary:'#6D5CE0', colorText:'#18181B', colorTextSecondary:'#6B7280', colorBackground:'#FFFFFF', fontFamily:'Inter, sans-serif', borderRadius:'10px' } };
+}
+
+async function boot(){
+  render();
+  var cfg;
+  try{ cfg = await api('GET', '/api/config'); }
+  catch(e){ UI.stage='error'; UI.errorMessage='Could not reach the server. Make sure `npm start` is running.'; render(); return; }
+  if(!cfg.clerkEnabled){ UI.stage='error'; UI.errorMessage='Clerk isn\'t configured on the server yet — add CLERK_PUBLISHABLE_KEY and CLERK_SECRET_KEY to .env and restart.'; render(); return; }
+  try{ CLERK = await initClerk(cfg.clerkPublishableKey); }
+  catch(e){ UI.stage='error'; UI.errorMessage='Could not load Clerk: ' + e.message; render(); return; }
+  await afterClerkReady();
+}
+
+async function afterClerkReady(){
+  if(CLERK.user){ await enterAuthedFlow(); }
+  else { showAuthScreen(); }
+}
+
+function showAuthScreen(){
+  UI.stage = 'auth';
+  document.getElementById('shell').innerHTML = authScreenHtml();
+  try{
+    CLERK.mountSignIn(document.getElementById('clerk-signin-mount'), { appearance: clerkAppearance() });
+    CLERK.mountSignUp(document.getElementById('clerk-signup-mount'), { appearance: clerkAppearance() });
+  }catch(e){ console.error('Clerk mount error:', e); }
+  setAuthTab('sign-in');
+  // Best-effort live update if this Clerk SDK version supports it — otherwise
+  // Clerk's own post-auth redirect reloads the page and boot() runs again.
+  try{
+    CLERK.addListener(function(payload){
+      if(payload && payload.user && UI.stage === 'auth'){ enterAuthedFlow(); }
+    });
+  }catch(e){ /* no addListener on this version — fine, the reload path covers it */ }
+}
+function authScreenHtml(){
+  return '<div class="full-screen"><div class="center-card">'+
+    '<div class="brandmark"><span class="dot"></span><span>Club OS</span></div>'+
+    '<div class="center-sub">Sign in to manage or join your club</div>'+
+    '<div class="auth-card">'+
+      '<div class="auth-tabs"><button id="tab-sign-in" class="active" onclick="setAuthTab(\'sign-in\')">Sign In</button><button id="tab-sign-up" onclick="setAuthTab(\'sign-up\')">Sign Up</button></div>'+
+      '<div id="clerk-signin-mount" class="clerk-mount"></div>'+
+      '<div id="clerk-signup-mount" class="clerk-mount" style="display:none;"></div>'+
+    '</div>'+
+    '<div class="refresh-hint">Signed in already but stuck here? <button onclick="location.reload()">Refresh</button></div>'+
+    '<div class="refresh-hint" style="margin-top:6px;">By continuing you agree to the <a href="/terms.html" target="_blank" style="color:var(--accent);">Terms</a> and <a href="/privacy.html" target="_blank" style="color:var(--accent);">Privacy Policy</a> (beta).</div>'+
+    '</div></div>';
+}
+function setAuthTab(tab){
+  var signinEl = document.getElementById('clerk-signin-mount');
+  var signupEl = document.getElementById('clerk-signup-mount');
+  if(!signinEl || !signupEl) return;
+  signinEl.style.display = tab==='sign-in' ? 'block' : 'none';
+  signupEl.style.display = tab==='sign-up' ? 'block' : 'none';
+  document.getElementById('tab-sign-in').classList.toggle('active', tab==='sign-in');
+  document.getElementById('tab-sign-up').classList.toggle('active', tab==='sign-up');
+}
+
+/* =====================================================================
+   CLUB SELECTION — Clerk says WHO, this decides WHICH CLUB
+===================================================================== */
+async function enterAuthedFlow(){
+  var res;
+  try{ res = await api('GET', '/api/my-clubs'); }
+  catch(e){ UI.stage='error'; UI.errorMessage = e.message; render(); return; }
+  MY_CLUBS = res.clubs;
+  if(MY_CLUBS.length === 1){ await selectClub(MY_CLUBS[0].id); }
+  else { UI.stage = 'clubchoice'; UI.clubChoiceMode=''; render(); }
+}
+
+function renderClubChoice(){
+  var hasClubs = MY_CLUBS.length > 0;
+  var canReturn = hasClubs && DATA && DATA.club;
+  var listHtml = hasClubs ? MY_CLUBS.map(function(c){
+    return '<div class="club-list-item"><h4>'+esc(c.name)+'</h4><button class="btn sm ghost" onclick="selectClub(\''+c.id+'\')">Enter</button></div>';
+  }).join('') : '';
+  var inner = UI.clubChoiceMode==='create' ? clubCreateFormHtml() : UI.clubChoiceMode==='join' ? clubJoinFormHtml() : clubChoiceCardsHtml();
+  var feedbackPanel = UI.feedbackOpen ? '<div class="card" style="margin-top:14px;">'+
+    '<div class="eyebrow">Found a bug? Something confusing?</div>'+
+    '<textarea id="feedbackText" placeholder="What happened, or what would help?" style="width:100%;min-height:70px;padding:9px 11px;border-radius:10px;border:1px solid var(--border);margin-top:8px;"></textarea>'+
+    '<button class="btn sm gold" style="margin-top:8px;" onclick="submitFeedback()">Send</button></div>' : '';
+  return '<div class="full-screen"><div class="center-card" style="max-width:560px;">'+
+    '<div class="brandmark"><span class="dot"></span><span>Club OS</span></div>'+
+    '<div class="center-sub">'+(hasClubs ? 'Your clubs' : 'You\'re signed in — create your club or join one with a code')+'</div>'+
+    (canReturn ? '<button class="back-link" onclick="cancelClubPicker()">&larr; Back to '+esc(DATA.club.name)+'</button>' : '') +
+    listHtml +
+    (UI.clubFormError ? '<div class="banner" style="margin:14px 0;">'+esc(UI.clubFormError)+'</div>' : '') +
+    inner +
+    '<div style="text-align:center;margin-top:18px;"><button class="back-link" style="margin:0 auto;" onclick="toggleFeedback()">'+(UI.feedbackOpen?'Hide feedback':'Something not working? Send feedback')+'</button></div>'+
+    feedbackPanel +
+    '</div></div>';
+}
+function clubChoiceCardsHtml(){
+  return '<div class="choice-grid">'+
+    '<div class="choice-card" onclick="UI.clubChoiceMode=\'create\';UI.clubFormError=\'\';render()"><div class="ci">+</div><h3>Create a Club</h3><p>Start fresh. You become President with full access, and get an invite code for everyone else.</p></div>'+
+    '<div class="choice-card" onclick="UI.clubChoiceMode=\'join\';UI.clubFormError=\'\';render()"><div class="ci">#</div><h3>Join a Club</h3><p>Have a code from an officer? Enter it and you\'re on the roster right away.</p></div>'+
+    '</div>';
+}
+function clubCreateFormHtml(){
+  return '<button class="back-link" onclick="UI.clubChoiceMode=\'\';render()">&larr; Back</button>'+
+    '<form onsubmit="submitCreateClub(event)" class="card">'+
+    '<div class="field" style="margin-bottom:14px;"><label>Club name</label><input type="text" name="clubName" placeholder="e.g. Eastview Robotics Club"></div>'+
+    '<div class="field" style="margin-bottom:14px;"><label>Your year</label><select name="year"><option>Freshman</option><option>Sophomore</option><option>Junior</option><option>Senior</option><option value="—">Prefer not to say</option></select></div>'+
+    '<button class="btn gold" type="submit" style="width:100%;justify-content:center;">Create Club</button>'+
+    '</form>';
+}
+function clubJoinFormHtml(){
+  return '<button class="back-link" onclick="UI.clubChoiceMode=\'\';render()">&larr; Back</button>'+
+    '<form onsubmit="submitJoinClub(event)" class="card">'+
+    '<div class="field" style="margin-bottom:14px;"><label>Club code</label><input type="text" name="joinCode" placeholder="e.g. 7QK3MP" style="text-transform:uppercase;letter-spacing:0.1em;"></div>'+
+    '<button class="btn gold" type="submit" style="width:100%;justify-content:center;">Join Club</button>'+
+    '</form>';
+}
+async function submitCreateClub(ev){
+  ev.preventDefault();
+  var f = ev.target;
+  if(!f.clubName.value.trim()){ UI.clubFormError = 'Club name is required.'; render(); return; }
+  try{
+    var res = await api('POST', '/api/clubs', {clubName: f.clubName.value.trim(), year: f.year.value});
+    toast('"' + res.club.name + '" created — invite code: ' + res.club.joinCode, true);
+    await selectClub(res.club.id);
+  }catch(e){ UI.clubFormError = e.message; render(); }
+}
+async function submitJoinClub(ev){
+  ev.preventDefault();
+  var f = ev.target;
+  if(!f.joinCode.value.trim()){ UI.clubFormError = 'Club code is required.'; render(); return; }
+  try{
+    var res = await api('POST', '/api/clubs/join', {joinCode: f.joinCode.value.trim()});
+    toast('Welcome to ' + res.club.name + '!', true);
+    await selectClub(res.club.id);
+  }catch(e){ UI.clubFormError = e.message; render(); }
+}
+async function selectClub(clubId){
+  try{ await api('POST', '/api/clubs/select', {clubId: clubId}); }
+  catch(e){ errToast(e); return; }
+  await refreshMe();
+  await refreshState();
+  UI.stage = 'app';
+  UI.clubChoiceMode = '';
+  UI.clubFormError = '';
+  UI.view = (ME.member && ME.member.officerRole) ? 'dashboard' : 'sdash';
+  UI.viewMode = (ME.member && ME.member.officerRole) ? 'officer' : 'member';
+  render();
+  startPolling();
+}
+async function goToClubPicker(){
+  stopPolling();
+  try{ var res = await api('GET', '/api/my-clubs'); MY_CLUBS = res.clubs; }
+  catch(e){ errToast(e); }
+  UI.stage = 'clubchoice';
+  UI.clubChoiceMode = '';
+  UI.clubFormError = '';
+  render();
+}
+function cancelClubPicker(){
+  if(!DATA || !DATA.club) return;
+  UI.stage = 'app';
+  UI.clubChoiceMode = '';
+  UI.clubFormError = '';
+  render();
+  startPolling();
+}
+async function signOut(){
+  stopPolling();
+  try{ await api('POST', '/api/session/clear-club'); }catch(e){}
+  try{ await CLERK.signOut(); }catch(e){}
+  window.location.href = '/';
+}
+async function leaveClub(){
+  if(!UI.leaveArmed){
+    UI.leaveArmed = true; render();
+    toast('Click "Leave This Club" again within 5s to confirm.', false);
+    setTimeout(function(){ if(UI.leaveArmed){ UI.leaveArmed=false; render(); } }, 5000);
+    return;
+  }
+  UI.leaveArmed = false;
+  try{
+    await api('POST', '/api/clubs/leave');
+    stopPolling();
+    toast('You\'ve left the club', true);
+    window.location.href = '/';
+  }catch(e){ errToast(e); render(); }
+}
+function renderLoading(){
+  return '<div class="full-screen"><div style="text-align:center;"><div class="spin" style="margin:0 auto;"></div><div class="loading-copy">Loading Club OS…</div></div></div>';
+}
+function renderError(){
+  return '<div class="full-screen"><div class="center-card">'+
+    '<div class="brandmark"><span class="dot"></span><span>Club OS</span></div>'+
+    '<div class="banner">'+esc(UI.errorMessage||'Something went wrong.')+'</div>'+
+    '<button class="btn ghost" style="width:100%;justify-content:center;" onclick="location.reload()">Try Again</button>'+
+    '</div></div>';
+}
+
+/* =====================================================================
+   ACTIONS — in-app mutations (unchanged from the club/member logic)
+===================================================================== */
+function navigate(key){ UI.view = key; render(); }
+function setViewMode(mode){ UI.viewMode = mode; UI.view = mode==='officer' ? 'dashboard' : 'sdash'; render(); }
+function toggleForm(key){ UI.formOpen[key] = !UI.formOpen[key]; render(); }
+function toggleNotif(){ UI.notifOpen = !UI.notifOpen; render(); }
+
+async function withRefresh(promise){
+  try{ await promise; await refreshState(); render(); }
+  catch(e){ errToast(e); }
+}
+
+function sendReminder(deadlineId){
+  withRefresh((async function(){
+    var res = await api('POST', '/api/deadlines/'+deadlineId+'/remind', {});
+    toast('Reminder sent to ' + res.remindedCount + ' member' + (res.remindedCount===1?'':'s'), true);
+  })());
+}
+function remindMember(memberId, deadlineId){
+  withRefresh((async function(){
+    await api('POST', '/api/members/'+memberId+'/remind', {deadlineId: deadlineId});
+    toast('Nudge sent to ' + memberById(memberId).name, true);
+  })());
+}
+async function remindAllAtRisk(){
+  var risk = atRiskMembers();
+  for(var i=0;i<risk.length;i++){
+    var r = risk[i];
+    if(r.missing[0]){ try{ await api('POST', '/api/members/'+r.m.id+'/remind', {deadlineId:r.missing[0].id}); }catch(e){} }
+  }
+  await refreshState(); render();
+  toast('Reminder sent to all ' + risk.length + ' at-risk members', true);
+}
+
+function markComplete(deadlineId, memberId, val){
+  withRefresh(api('POST', '/api/deadlines/'+deadlineId+'/complete', {memberId:memberId, value:!!val}));
+}
+
+function addMember(ev){
+  ev.preventDefault();
+  var f = ev.target;
+  withRefresh((async function(){
+    var res = await api('POST', '/api/members', {name:f.name.value.trim(), email:f.email.value.trim(), phone:f.phone.value.trim(), year:f.year.value});
+    toast('Added ' + res.member.name + ' — they\'ll be matched in automatically once they join with your invite code using this email.', true);
+    UI.formOpen.addMember = false;
+  })());
+}
+function removeMember(id){
+  withRefresh((async function(){
+    var name = memberById(id).name;
+    await api('DELETE', '/api/members/'+id);
+    toast('Removed ' + name + ' from the roster', true);
+  })());
+}
+function startEditMember(id){ UI.editingMemberId = id; UI.formOpen.addMember = false; render(); }
+function cancelEditMember(){ UI.editingMemberId = null; render(); }
+function saveMemberEdit(id){
+  var name = document.getElementById('edit-name-'+id).value.trim();
+  var email = document.getElementById('edit-email-'+id).value.trim();
+  var phone = document.getElementById('edit-phone-'+id).value.trim();
+  var year = document.getElementById('edit-year-'+id).value;
+  withRefresh((async function(){
+    await api('PATCH', '/api/members/'+id, {name:name, email:email, phone:phone, year:year});
+    toast('Updated ' + name, true);
+    UI.editingMemberId = null;
+  })());
+}
+
+function takeAttendance(ev){
+  ev.preventDefault();
+  var f = ev.target;
+  if(!f.date.value){ toast('Pick a date first'); return; }
+  withRefresh((async function(){
+    await api('POST', '/api/attendance', {label:f.label.value.trim(), date:f.date.value});
+    toast('Attendance sheet created — mark who was there below', true);
+    UI.formOpen.takeAttendance = false;
+  })());
+}
+function markAttendance(dateId, memberId, val){
+  withRefresh(api('POST', '/api/attendance/'+dateId+'/mark', {memberId:memberId, present:!!val}));
+}
+function deleteAttendanceDate(id){
+  withRefresh((async function(){ await api('DELETE', '/api/attendance/'+id); toast('Attendance record removed', true); })());
+}
+
+function addDeadline(ev){
+  ev.preventDefault();
+  var f = ev.target;
+  withRefresh((async function(){
+    var res = await api('POST', '/api/deadlines', {title:f.title.value.trim(), type:f.type.value, amount:Number(f.amount.value||0), dueDate:f.due.value, ackRequired:f.ack.checked});
+    toast('Added deadline: ' + res.deadline.title, true);
+    UI.formOpen.addDeadline = false;
+  })());
+}
+function deleteDeadline(id){
+  withRefresh((async function(){ await api('DELETE', '/api/deadlines/'+id); toast('Deadline removed', true); })());
+}
+function startEditDeadline(id){ UI.editingDeadlineId = id; UI.formOpen.addDeadline = false; render(); }
+function cancelEditDeadline(){ UI.editingDeadlineId = null; render(); }
+function saveDeadlineEdit(id){
+  var title = document.getElementById('edit-dtitle-'+id).value.trim();
+  var due = document.getElementById('edit-ddue-'+id).value;
+  var ack = document.getElementById('edit-dack-'+id).checked;
+  var d = deadlineById(id);
+  var body = {title:title, dueDate:due, ackRequired:ack};
+  if(d.type!=='event' && d.type!=='form'){ body.amount = Number(document.getElementById('edit-damount-'+id).value||0); }
+  withRefresh((async function(){
+    await api('PATCH', '/api/deadlines/'+id, body);
+    toast('Updated ' + title, true);
+    UI.editingDeadlineId = null;
+  })());
+}
+
+function addAnnouncement(ev){
+  ev.preventDefault();
+  var f = ev.target;
+  withRefresh((async function(){
+    var res = await api('POST', '/api/announcements', {title:f.title.value.trim(), body:f.body.value.trim(), ackRequired:f.ack.checked});
+    toast('Posted: ' + res.announcement.title, true);
+    UI.formOpen.addAnn = false;
+  })());
+}
+function markRead(annId){ withRefresh(api('POST', '/api/announcements/'+annId+'/read')); }
+function startEditAnn(id){ UI.editingAnnId = id; UI.formOpen.addAnn = false; render(); }
+function cancelEditAnn(){ UI.editingAnnId = null; render(); }
+function saveAnnEdit(id){
+  var title = document.getElementById('edit-atitle-'+id).value.trim();
+  var body = document.getElementById('edit-abody-'+id).value;
+  var ack = document.getElementById('edit-aack-'+id).checked;
+  withRefresh((async function(){
+    await api('PATCH', '/api/announcements/'+id, {title:title, body:body, ackRequired:ack});
+    toast('Updated announcement', true);
+    UI.editingAnnId = null;
+  })());
+}
+
+function togglePerm(officerId, key){
+  var current = !!officerPerms(officerId)[key];
+  withRefresh(api('POST', '/api/officers/'+officerId+'/permissions', {key:key, value: !current}));
+}
+function promoteOfficer(ev){
+  ev.preventDefault();
+  var f = ev.target;
+  var id = f.member.value, title = f.title.value.trim();
+  if(!id || !title){ toast('Pick a member and enter a title'); return; }
+  withRefresh((async function(){
+    var res = await api('POST', '/api/officers/'+id+'/promote', {title:title});
+    toast(res.member.name + ' is now ' + title, true);
+    UI.formOpen.addOfficer = false;
+  })());
+}
+function demoteOfficer(id){
+  withRefresh((async function(){
+    var name = memberById(id).name;
+    await api('POST', '/api/officers/'+id+'/demote');
+    toast(name + ' stepped down from officer role', true);
+  })());
+}
+
+function rsvpEvent(deadlineId, val){ withRefresh(api('POST', '/api/deadlines/'+deadlineId+'/rsvp', {value:val})); }
+function acknowledgeForm(deadlineId){ withRefresh((async function(){ await api('POST', '/api/deadlines/'+deadlineId+'/acknowledge'); toast('Acknowledged', true); })()); }
+
+async function payWithStripe(deadlineId, btn){
+  if(!DATA.stripeEnabled){ toast('Stripe isn\'t connected yet — an officer needs to add STRIPE_SECRET_KEY to the server\'s .env file.', false); return; }
+  var original = btn.textContent;
+  btn.disabled = true; btn.textContent = 'Redirecting to Stripe…';
+  try{
+    var res = await api('POST', '/api/payments/checkout', {deadlineId: deadlineId});
+    window.location.href = res.url;
+  }catch(e){ errToast(e); btn.disabled = false; btn.textContent = original; }
+}
+
+function markNotifRead(id){ withRefresh(api('POST', '/api/notifications/'+id+'/read')); }
+function markAllNotifRead(){ withRefresh(api('POST', '/api/notifications/read-all')); }
+
+function saveProfile(ev){
+  ev.preventDefault();
+  var f = ev.target;
+  withRefresh((async function(){
+    await api('PATCH', '/api/profile', {phone:f.phone.value.trim(), emergency:f.emergency.value.trim(), year:f.year.value});
+    toast('Profile updated', true);
+  })());
+}
+
+function renameClub(ev){
+  ev.preventDefault();
+  var f = ev.target;
+  withRefresh((async function(){
+    var res = await api('PATCH', '/api/club', {name: f.clubName.value.trim()});
+    toast('Club renamed to ' + res.club.name, true);
+  })());
+}
+function regenerateCode(){
+  withRefresh((async function(){
+    var res = await api('POST', '/api/club/regenerate-code');
+    toast('New invite code: ' + res.joinCode, true);
+  })());
+}
+function loadSampleData(){
+  withRefresh((async function(){
+    var res = await api('POST', '/api/club/load-sample');
+    toast('Added ' + res.added.members + ' sample members, ' + res.added.deadlines + ' deadlines, ' + res.added.announcements + ' announcements', true);
+  })());
+}
+async function eraseClubData(){
+  if(!UI.resetArmed){
+    UI.resetArmed = true; render();
+    toast('Click "Erase All Club Data" again within 5s to confirm.', false);
+    setTimeout(function(){ if(UI.resetArmed){ UI.resetArmed=false; render(); } }, 5000);
+    return;
+  }
+  UI.resetArmed = false;
+  try{
+    await api('POST', '/api/club/erase');
+    toast('Club data erased — you\'re still signed in as President.', true);
+    await refreshState(); render();
+  }catch(e){ errToast(e); }
+}
+async function deleteClubForever(){
+  if(!UI.deleteArmed){
+    UI.deleteArmed = true; render();
+    toast('Click "Delete This Club Permanently" again within 5s to confirm.', false);
+    setTimeout(function(){ if(UI.deleteArmed){ UI.deleteArmed=false; render(); } }, 5000);
+    return;
+  }
+  UI.deleteArmed = false;
+  try{
+    await api('POST', '/api/club/delete');
+    stopPolling();
+    toast('Club deleted', true);
+    window.location.href = '/';
+  }catch(e){ errToast(e); render(); }
+}
+
+function exportCSV(kind){
+  window.open('/api/export/' + kind + '.csv', '_blank');
+}
+
+/* =====================================================================
+   RENDER — top-level dispatcher across every stage
+===================================================================== */
+function render(){
+  if(UI.stage==='loading'){ document.getElementById('shell').innerHTML = renderLoading(); return; }
+  if(UI.stage==='error'){ document.getElementById('shell').innerHTML = renderError(); return; }
+  if(UI.stage==='auth'){ return; } // owned by showAuthScreen()/setAuthTab() — never wipe Clerk's mounted DOM here
+  if(UI.stage==='clubchoice'){ document.getElementById('shell').innerHTML = renderClubChoice(); return; }
+  var m = ME.member;
+  document.getElementById('shell').innerHTML = (m.officerRole && UI.viewMode==='officer') ? adminShell() : studentShell();
+}
+function syncPillHtml(){
+  var secs = LAST_SYNC_AT ? Math.max(0, Math.round((Date.now()-LAST_SYNC_AT)/1000)) : null;
+  var label = secs===null ? 'Connecting…' : (secs < 3 ? 'Live' : 'Synced ' + secs + 's ago');
+  return '<div class="sync-pill"><span class="sdot"></span>'+label+'</div>';
+}
+function sidebarAdmin(){
+  var m = ME.member; var perms = officerPerms(m.id);
+  var navHtml = NAV_ADMIN.map(function(n){
+    var allowed = !!perms[n.perm]; var active = UI.view===n.key;
+    return '<button class="nav-item'+(active?' active':'')+(allowed?'':' locked')+'" onclick="navigate(\''+n.key+'\')"><span class="sq"></span>'+esc(n.label)+(allowed?'':'<span class="lockmark">LOCK</span>')+'</button>';
+  }).join('');
+  return '<div id="sidebar">'+
+    '<div class="brand"><div class="mark"><span class="dot"></span><h1>'+esc(DATA.club.name)+'</h1></div><div class="sub">Club OS · Officer Tools</div></div>'+
+    '<div class="nav-group"><div class="nav-label">Manage</div>'+navHtml+'</div>'+
+    switcherHtml(m) + '</div>';
+}
+function sidebarStudent(){
+  var navHtml = NAV_STUDENT.map(function(n){
+    var active = UI.view===n.key;
+    return '<button class="nav-item'+(active?' active':'')+'" onclick="navigate(\''+n.key+'\')"><span class="sq"></span>'+esc(n.label)+'</button>';
+  }).join('');
+  var m = ME.member;
+  return '<div id="sidebar">'+
+    '<div class="brand"><div class="mark"><span class="dot"></span><h1>'+esc(DATA.club.name)+'</h1></div><div class="sub">Club OS · My Membership</div></div>'+
+    '<div class="nav-group"><div class="nav-label">My Club</div>'+navHtml+'</div>'+
+    switcherHtml(m) + '</div>';
+}
+function switcherHtml(m){
+  var toggle = m.officerRole ? '<div class="role-toggle"><button class="'+(UI.viewMode==='officer'?'active':'')+'" onclick="setViewMode(\'officer\')">Officer Tools</button><button class="'+(UI.viewMode==='member'?'active':'')+'" onclick="setViewMode(\'member\')">My Membership</button></div>' : '';
+  var invitePanel = UI.inviteOpen ? '<div class="invite-panel"><div class="invite-label">Club Invite Code</div><div class="invite-code" id="inviteCodeText">'+esc(DATA.club.joinCode)+'</div>'+
+    '<button class="btn sm ghost" style="width:100%;justify-content:center;margin-top:8px;" onclick="copyInviteCode()">Copy Code</button>'+
+    '<div class="invite-help">Anyone with this code can join as a regular member — it does not grant officer access.</div></div>' : '';
+  var switchClub = '<button class="invite-toggle" onclick="goToClubPicker()">'+(MY_CLUBS.length > 1 ? 'Switch club ('+MY_CLUBS.length+')' : 'Join or Create Another Club')+'</button>';
+  var feedbackPanel = UI.feedbackOpen ? '<div class="invite-panel">'+
+    '<div class="invite-label">Found a bug? Something confusing?</div>'+
+    '<textarea id="feedbackText" placeholder="What happened, or what would help?" style="width:100%;min-height:70px;padding:8px;border-radius:8px;border:1px solid var(--sidebar-line);background:rgba(0,0,0,0.25);color:var(--sidebar-text);font-size:12.5px;"></textarea>'+
+    '<button class="btn sm gold" style="width:100%;justify-content:center;margin-top:8px;" onclick="submitFeedback()">Send</button></div>' : '';
+  return '<div class="switcher">'+toggle+
+    '<button class="invite-toggle" onclick="toggleInvite()">'+(UI.inviteOpen?'Hide invite code':'Invite people')+'</button>'+
+    invitePanel+ switchClub +
+    '<button class="invite-toggle" onclick="toggleFeedback()">'+(UI.feedbackOpen?'Hide feedback':'Send Feedback')+'</button>'+
+    feedbackPanel+
+    '<div class="whoami"><div><div class="who-name">'+esc(m.name)+'</div><div class="who-role">'+esc(m.officerRole||m.year)+'</div></div><button onclick="signOut()">Sign out</button></div></div>';
+}
+function toggleFeedback(){ UI.feedbackOpen = !UI.feedbackOpen; render(); }
+async function submitFeedback(){
+  var text = document.getElementById('feedbackText').value.trim();
+  if(!text){ toast('Write a bit about what happened first'); return; }
+  try{
+    await api('POST', '/api/feedback', {message: text});
+    toast('Thanks — feedback sent', true);
+    UI.feedbackOpen = false; render();
+  }catch(e){ errToast(e); }
+}
+function toggleInvite(){ UI.inviteOpen = !UI.inviteOpen; render(); }
+function copyInviteCode(){
+  var text = DATA.club.joinCode;
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(function(){ toast('Invite code copied', true); }).catch(function(){ toast('Copy failed — code is ' + text, false); });
+  } else { toast('Your code is ' + text); }
+}
+
+function topbarTitle(){
+  var titles = {
+    dashboard:['Dashboard','Everything due, at a glance'], members:['Members','Roster, attendance, contact info'],
+    attendance:['Attendance','Take attendance, track who shows up'],
+    payments:['Payments & Dues','Track who owes what'], deadlines:['Deadlines & Competitions','Fees, registrations, waivers, events'],
+    announcements:['Announcements','Post updates, track who has seen them'], officers:['Officers & Roles','Permissions by officer'],
+    reports:['Reports','Export club data'], sdash:['My Dashboard','What\'s due and what\'s next'], spay:['Pay Dues','Settle what you owe'],
+    sann:['Announcements','Updates from your officers'], sevents:['Events & RSVP','Say if you\'re in'],
+    satt:['My Attendance','Your practice record'], sprof:['Profile','Your contact info']
+  };
+  return titles[UI.view] || ['Club OS',''];
+}
+function bellHtml(){
+  var n = DATA.myNotifications || []; var unread = unreadCount();
+  var panel = '';
+  if(UI.notifOpen){
+    var items = n.length ? n.slice(0,25).map(function(x){
+      return '<div class="notif-item'+(x.read?'':' unread')+'" onclick="markNotifRead(\''+x.id+'\')"><div class="n-text">'+esc(x.text)+'</div><div class="n-date">'+fmtDateTime(x.date)+'</div></div>';
+    }).join('') : '<div class="notif-empty">No notifications yet.</div>';
+    panel = '<div class="notif-panel"><div class="np-head"><h4>Notifications</h4>'+(unread?'<button onclick="markAllNotifRead()">Mark all read</button>':'')+'</div>'+items+'</div>';
+  }
+  return '<div class="bell-wrap"><button class="bell-btn" onclick="toggleNotif()">&#128276;'+(unread?'<span class="bell-dot">'+unread+'</span>':'')+'</button>'+panel+'</div>';
+}
+function topbar(t){
+  return '<div class="topbar"><div><h2>'+esc(t[0])+'</h2><div class="meta">'+esc(t[1])+'</div></div>'+
+    '<div class="topbar-right">'+syncPillHtml()+bellHtml()+'</div></div>';
+}
+function adminShell(){
+  var t = topbarTitle();
+  var body = canView(UI.view) ? adminView(UI.view) : restrictedView();
+  return sidebarAdmin() + '<div id="main">' + topbar(t) + '<div class="content">' + body + '</div></div>';
+}
+function studentShell(){
+  var t = topbarTitle();
+  return sidebarStudent() + '<div id="main">' + topbar(t) + '<div class="content">' + studentView(UI.view) + '</div></div>';
+}
+function restrictedView(){
+  var m = ME.member;
+  return '<div class="restricted"><div class="disp">Restricted</div><p>'+esc(m.officerRole)+' doesn\'t have access to this section. Ask the President to grant it from Officers &amp; Roles.</p><button class="btn gold" onclick="navigate(\'dashboard\')">Back to Dashboard</button></div>';
+}
+
+/* ---------- ticker ---------- */
+function renderTicker(){
+  var items = DATA.deadlines.filter(function(d){return d.type!=='event';}).map(function(d){
+    var n = daysUntil(d.dueDate), u = urgency(n);
+    var cls = u==='crit'?'crit':(u==='warn'?'warn':'');
+    return '<div class="tblock '+cls+'"><div class="tnum">'+daysLabel(n)+'</div><div class="ttitle">'+esc(d.title)+'</div></div>';
+  }).join('');
+  var overdue = DATA.deadlines.filter(function(d){return d.type!=='event' && daysUntil(d.dueDate)<0;}).length;
+  return '<div class="ticker-wrap"><div class="ticker-label">'+(overdue?'<span class="blink"></span>':'')+'Deadline Ticker — '+(overdue?overdue+' item'+(overdue===1?'':'s')+' overdue':'all clear for now')+'</div><div class="ticker">'+items+'</div></div>';
+}
+
+/* ---------- ADMIN VIEWS ---------- */
+function adminView(view){
+  if(view==='dashboard') return adminDashboard();
+  if(view==='members') return adminMembers();
+  if(view==='attendance') return adminAttendance();
+  if(view==='payments') return adminPayments();
+  if(view==='deadlines') return adminDeadlines();
+  if(view==='announcements') return adminAnnouncements();
+  if(view==='officers') return adminOfficers();
+  if(view==='reports') return adminReports();
+  return '';
+}
+
+function adminDashboard(){
+  var risk = atRiskMembers();
+  var cards = DATA.deadlines.filter(function(d){return d.type!=='event';}).map(function(d){
+    var c = complianceFor(d.id); var barCls = c.pct>=75?'':(c.pct>=45?'amber':'rust');
+    return '<div class="card"><div class="eyebrow">'+esc(d.type)+' · due '+fmtDate(d.dueDate)+'</div><h3>'+esc(d.title)+'</h3>'+
+      '<div class="stat-big">'+c.pct+'%</div><div class="sub-cell">'+c.done+' of '+c.total+' complete</div>'+
+      '<div class="bar '+barCls+'"><div style="width:'+c.pct+'%"></div></div>'+
+      '<div style="margin-top:12px;"><button class="btn sm ghost" onclick="sendReminder(\''+d.id+'\')">Remind '+(c.total-c.done)+' Outstanding</button></div></div>';
+  }).join('');
+  var riskRows = risk.length ? risk.map(function(r){
+    return '<tr><td class="name-cell">'+esc(r.m.name)+'<div class="sub-cell">'+esc(r.m.year)+'</div></td>'+
+      '<td>'+(r.missing.length?r.missing.map(function(d){return '<span class="tag bad" style="margin:2px 4px 2px 0;">'+esc(d.title)+'</span>';}).join(''):'<span class="tag good">All caught up</span>')+'</td>'+
+      '<td class="mono">'+r.att+'%</td>'+
+      '<td><button class="btn sm ghost" onclick="remindMember(\''+r.m.id+'\',\''+(r.missing[0]?r.missing[0].id:'d1')+'\')">Send Nudge</button></td></tr>';
+  }).join('') : '<tr><td colspan="4"><div class="empty">No one is flagged right now.</div></td></tr>';
+  return renderTicker() + '<div class="grid grid-3">'+cards+'</div>'+
+    '<div class="section-title"><h3>At-Risk Members ('+risk.length+')</h3>'+(risk.length?'<button class="btn gold sm" onclick="remindAllAtRisk()">Remind All At-Risk</button>':'')+'</div>'+
+    '<table><thead><tr><th>Member</th><th>Missing</th><th>Attendance</th><th></th></tr></thead><tbody>'+riskRows+'</tbody></table>';
+}
+
+function adminMembers(){
+  var rows = DATA.members.map(function(m){
+    if(UI.editingMemberId === m.id){
+      return '<tr><td colspan="5"><div class="field-row" style="margin-bottom:10px;align-items:end;">'+
+        '<div class="field"><label>Full name</label><input type="text" id="edit-name-'+m.id+'" value="'+esc(m.name)+'"></div>'+
+        '<div class="field"><label>Email</label><input type="text" id="edit-email-'+m.id+'" value="'+esc(m.email)+'"></div>'+
+        '<div class="field"><label>Phone</label><input type="text" id="edit-phone-'+m.id+'" value="'+esc(m.phone)+'"></div>'+
+        '<div class="field"><label>Year</label><select id="edit-year-'+m.id+'">'+['Freshman','Sophomore','Junior','Senior'].map(function(y){return '<option'+(m.year===y?' selected':'')+'>'+y+'</option>';}).join('')+'</select></div>'+
+        '<div class="btn-row"><button class="btn gold sm" onclick="saveMemberEdit(\''+m.id+'\')">Save</button><button class="btn ghost sm" onclick="cancelEditMember()">Cancel</button></div>'+
+        '</div></td></tr>';
+    }
+    var missing = memberIncompleteItems(m.id).length; var att = attendancePct(m.id);
+    var attCls = att>=75?'good':(att>=50?'warn':'bad');
+    return '<tr><td class="name-cell">'+esc(m.name)+(m.officerRole?' <span class="officer-tag">'+esc(m.officerRole)+'</span>':'')+'<div class="sub-cell">'+esc(m.email)+'</div></td>'+
+      '<td>'+esc(m.year)+'</td>'+
+      '<td>'+(missing===0?'<span class="tag good">Current</span>':'<span class="tag bad">'+missing+' pending</span>')+'</td>'+
+      '<td><span class="tag '+attCls+'">'+att+'%</span></td>'+
+      '<td class="btn-row"><button class="btn sm ghost" onclick="startEditMember(\''+m.id+'\')">Edit</button><button class="btn sm ghost" onclick="remindMember(\''+m.id+'\',\'d1\')">Nudge</button>'+(m.officerRole?'':'<button class="btn sm danger" onclick="removeMember(\''+m.id+'\')">Remove</button>')+'</td></tr>';
+  }).join('');
+  return '<div class="section-title"><h3>Roster ('+DATA.members.length+')</h3><button class="btn gold sm" onclick="toggleForm(\'addMember\')">'+(UI.formOpen.addMember?'Close':'+ Add Member')+'</button></div>'+
+    '<div class="form-panel'+(UI.formOpen.addMember?'':' hidden')+'"><form onsubmit="addMember(event)">'+
+      '<div class="field-row"><div class="field"><label>Full name</label><input type="text" name="name"></div>'+
+      '<div class="field"><label>Email</label><input type="text" name="email"></div><div class="field"><label>Phone</label><input type="text" name="phone"></div>'+
+      '<div class="field"><label>Year</label><select name="year"><option>Freshman</option><option>Sophomore</option><option>Junior</option><option>Senior</option></select></div></div>'+
+      '<button class="btn gold sm" type="submit">Add to Roster</button></form></div>'+
+    '<table><thead><tr><th>Name</th><th>Year</th><th>Status</th><th>Attendance</th><th></th></tr></thead><tbody>'+rows+'</tbody></table>';
+}
+
+function adminAttendance(){
+  var sortedDates = DATA.attendanceDates.slice().sort(function(a,b){ return parseDate(b.date)-parseDate(a.date); });
+  var sections = sortedDates.map(function(d){
+    var map = DATA.attendance[d.id] || {};
+    var presentCount = DATA.members.filter(function(m){return map[m.id];}).length;
+    var rows = DATA.members.map(function(m){
+      var present = !!map[m.id];
+      return '<tr><td class="name-cell">'+esc(m.name)+'</td>'+
+        '<td>'+(present?'<span class="tag good">Present</span>':'<span class="tag bad">Absent</span>')+'</td>'+
+        '<td><button class="btn sm '+(present?'ghost':'gold')+'" onclick="markAttendance(\''+d.id+'\',\''+m.id+'\','+(present?0:1)+')">'+(present?'Mark Absent':'Mark Present')+'</button></td></tr>';
+    }).join('');
+    return '<div class="section-title"><h3>'+esc(d.label)+' <span class="sub-cell">· '+fmtDate(d.date)+'</span></h3>'+
+      '<div class="btn-row"><span class="tag good" style="margin-right:4px;">'+presentCount+'/'+DATA.members.length+' present</span><button class="btn sm danger" onclick="deleteAttendanceDate(\''+d.id+'\')">Delete Date</button></div></div>'+
+      '<table><thead><tr><th>Member</th><th>Status</th><th></th></tr></thead><tbody>'+rows+'</tbody></table>';
+  }).join('<div class="divider"></div>');
+  return '<div class="section-title"><h3>Attendance ('+DATA.attendanceDates.length+' recorded)</h3><button class="btn gold sm" onclick="toggleForm(\'takeAttendance\')">'+(UI.formOpen.takeAttendance?'Close':'+ Take Attendance')+'</button></div>'+
+    '<div class="form-panel'+(UI.formOpen.takeAttendance?'':' hidden')+'"><form onsubmit="takeAttendance(event)">'+
+      '<div class="field-row"><div class="field"><label>What is this for</label><input type="text" name="label" placeholder="e.g. Practice, General Meeting" value="Practice"></div>'+
+      '<div class="field"><label>Date</label><input type="date" name="date"></div></div>'+
+      '<button class="btn gold sm" type="submit">Start Taking Attendance</button></form></div>'+
+    (sections || '<div class="empty">No attendance recorded yet — click "Take Attendance" to record your first date.</div>');
+}
+
+
+function adminPayments(){
+  var feeDeadlines = DATA.deadlines.filter(function(d){return d.type==='fee'||d.type==='competition';});
+  var totalCollected=0, totalOutstanding=0;
+  feeDeadlines.forEach(function(d){ DATA.members.forEach(function(m){ if(DATA.completion[d.id][m.id]) totalCollected+=d.amount; else totalOutstanding+=d.amount; }); });
+  var stripeNote = DATA.stripeEnabled ? '<span class="tag good">Stripe connected</span>' : '<span class="tag warn">Stripe not connected — members can\'t pay online yet</span>';
+  var sections = feeDeadlines.map(function(d){
+    var c = complianceFor(d.id);
+    var rows = DATA.members.map(function(m){
+      var done = DATA.completion[d.id][m.id];
+      return '<tr><td class="name-cell">'+esc(m.name)+'</td><td class="mono">'+fmtMoney(d.amount)+'</td>'+
+        '<td>'+(done?'<span class="tag paid">Paid</span>':'<span class="tag bad">Unpaid</span>')+'</td>'+
+        '<td><button class="btn sm '+(done?'ghost':'gold')+'" onclick="markComplete(\''+d.id+'\',\''+m.id+'\','+(done?0:1)+')">'+(done?'Mark Unpaid':'Mark Paid Manually')+'</button></td></tr>';
+    }).join('');
+    return '<div class="section-title"><h3>'+esc(d.title)+' <span class="sub-cell">· '+fmtMoney(d.amount)+' · due '+fmtDate(d.dueDate)+'</span></h3>'+
+      '<div class="btn-row"><span class="tag '+(c.pct>=75?'good':c.pct>=45?'warn':'bad')+'" style="margin-right:4px;">'+c.pct+'% collected</span><button class="btn sm ghost" onclick="sendReminder(\''+d.id+'\')">Remind Unpaid</button></div></div>'+
+      '<table><thead><tr><th>Member</th><th>Amount</th><th>Status</th><th></th></tr></thead><tbody>'+rows+'</tbody></table>';
+  }).join('<div class="divider"></div>');
+  return '<div class="grid grid-3">'+
+    '<div class="card"><div class="eyebrow">Treasury</div><div class="stat-big">'+fmtMoney(totalCollected)+'</div><div class="sub-cell">Collected to date</div></div>'+
+    '<div class="card"><div class="eyebrow">Treasury</div><div class="stat-big" style="color:var(--rust);">'+fmtMoney(totalOutstanding)+'</div><div class="sub-cell">Outstanding</div></div>'+
+    '<div class="card"><div class="eyebrow">Payment Method</div>'+stripeNote+'<button class="btn sm ghost" style="margin-top:10px;display:block;" onclick="exportCSV(\'payments\')">Export Payments CSV</button></div></div>'+
+    '<div class="divider"></div>'+sections;
+}
+
+function adminDeadlines(){
+  var rows = DATA.deadlines.map(function(d){
+    if(UI.editingDeadlineId === d.id){
+      var amountField = (d.type!=='event' && d.type!=='form') ? '<div class="field"><label>Amount ($)</label><input type="number" id="edit-damount-'+d.id+'" min="0" value="'+d.amount+'"></div>' : '';
+      return '<tr><td colspan="6"><div class="field-row" style="margin-bottom:10px;align-items:end;">'+
+        '<div class="field"><label>Title</label><input type="text" id="edit-dtitle-'+d.id+'" value="'+esc(d.title)+'"></div>'+
+        amountField+
+        '<div class="field"><label>Due date</label><input type="date" id="edit-ddue-'+d.id+'" value="'+d.dueDate+'"></div>'+
+        '<label class="checkline"><input type="checkbox" id="edit-dack-'+d.id+'" '+(d.ackRequired?'checked':'')+'> Require acknowledgment</label>'+
+        '<div class="btn-row"><button class="btn gold sm" onclick="saveDeadlineEdit(\''+d.id+'\')">Save</button><button class="btn ghost sm" onclick="cancelEditDeadline()">Cancel</button></div>'+
+        '</div></td></tr>';
+    }
+    var n = daysUntil(d.dueDate), u = urgency(n);
+    var stats = d.type==='event' ? ((DATA.rsvp[d.id]?Object.keys(DATA.rsvp[d.id]).length:0)+' responded') : (complianceFor(d.id).done+'/'+complianceFor(d.id).total+' complete');
+    return '<tr><td class="name-cell">'+esc(d.title)+(d.ackRequired?' <span class="tag neutral" style="margin-left:6px;">ACK REQUIRED</span>':'')+'</td>'+
+      '<td>'+esc(d.type)+'</td><td class="mono">'+(d.amount?fmtMoney(d.amount):'—')+'</td>'+
+      '<td><span class="tag '+(u==='crit'?'bad':u==='warn'?'warn':'good')+'">'+daysLabel(n)+' · '+fmtDate(d.dueDate)+'</span></td>'+
+      '<td class="sub-cell">'+stats+'</td>'+
+      '<td class="btn-row">'+(d.type!=='event'?'<button class="btn sm ghost" onclick="sendReminder(\''+d.id+'\')">Remind</button>':'')+'<button class="btn sm ghost" onclick="startEditDeadline(\''+d.id+'\')">Edit</button><button class="btn sm danger" onclick="deleteDeadline(\''+d.id+'\')">Delete</button></td></tr>';
+  }).join('');
+  return renderTicker() + '<div class="section-title"><h3>All Deadlines &amp; Events</h3><button class="btn gold sm" onclick="toggleForm(\'addDeadline\')">'+(UI.formOpen.addDeadline?'Close':'+ Add Deadline')+'</button></div>'+
+    '<div class="form-panel'+(UI.formOpen.addDeadline?'':' hidden')+'"><form onsubmit="addDeadline(event)">'+
+      '<div class="field-row"><div class="field"><label>Title</label><input type="text" name="title"></div>'+
+      '<div class="field"><label>Type</label><select name="type"><option value="fee">Fee</option><option value="competition">Competition</option><option value="form">Form / Waiver</option><option value="event">Event (RSVP)</option></select></div>'+
+      '<div class="field"><label>Amount ($)</label><input type="number" name="amount" min="0" value="0"></div>'+
+      '<div class="field"><label>Due date</label><input type="date" name="due"></div></div>'+
+      '<label class="checkline"><input type="checkbox" name="ack"> Require acknowledgment</label>'+
+      '<div style="margin-top:12px;"><button class="btn gold sm" type="submit">Create Deadline</button></div></form></div>'+
+    '<table><thead><tr><th>Title</th><th>Type</th><th>Amount</th><th>Due</th><th>Progress</th><th></th></tr></thead><tbody>'+rows+'</tbody></table>';
+}
+
+function adminAnnouncements(){
+  var items = DATA.announcements.map(function(a){
+    if(UI.editingAnnId === a.id){
+      return '<div class="ann-item">'+
+        '<div class="field" style="margin-bottom:10px;"><label>Headline</label><input type="text" id="edit-atitle-'+a.id+'" value="'+esc(a.title)+'"></div>'+
+        '<div class="field" style="margin-bottom:10px;"><label>Message</label><textarea id="edit-abody-'+a.id+'">'+esc(a.body)+'</textarea></div>'+
+        '<label class="checkline"><input type="checkbox" id="edit-aack-'+a.id+'" '+(a.ackRequired?'checked':'')+'> Require members to acknowledge</label>'+
+        '<div class="btn-row" style="margin-top:10px;"><button class="btn gold sm" onclick="saveAnnEdit(\''+a.id+'\')">Save</button><button class="btn ghost sm" onclick="cancelEditAnn()">Cancel</button></div>'+
+        '</div>';
+    }
+    var pct = Math.round(a.readBy.length / DATA.members.length * 100);
+    return '<div class="ann-item"><div class="ann-head"><div><h4>'+esc(a.title)+'</h4><div class="meta">Posted '+fmtDate(a.date)+(a.ackRequired?' · Acknowledgment required':'')+'</div></div>'+
+      '<span class="tag '+(pct>=70?'good':pct>=40?'warn':'bad')+'">'+pct+'% seen</span></div>'+
+      '<div class="body-text">'+esc(a.body)+'</div>'+
+      '<div class="sub-cell">Read by: '+(a.readBy.length?a.readBy.map(function(id){var mm=memberById(id);return mm?mm.name:'';}).filter(Boolean).join(', '):'no one yet')+'</div>'+
+      '<div class="btn-row" style="margin-top:10px;"><button class="btn sm ghost" onclick="startEditAnn(\''+a.id+'\')">Edit</button></div></div>';
+  }).join('');
+  return '<div class="section-title"><h3>Announcements</h3><button class="btn gold sm" onclick="toggleForm(\'addAnn\')">'+(UI.formOpen.addAnn?'Close':'+ Post Announcement')+'</button></div>'+
+    '<div class="form-panel'+(UI.formOpen.addAnn?'':' hidden')+'"><form onsubmit="addAnnouncement(event)">'+
+      '<div class="field"><label>Headline</label><input type="text" name="title"></div>'+
+      '<div class="field" style="margin-top:10px;"><label>Message</label><textarea name="body"></textarea></div>'+
+      '<label class="checkline"><input type="checkbox" name="ack"> Require members to acknowledge</label>'+
+      '<div style="margin-top:12px;"><button class="btn gold sm" type="submit">Post to Club</button></div></form></div>'+items;
+}
+
+function adminOfficers(){
+  var permsList = [{key:'dashboard',label:'Dashboard'},{key:'members',label:'Members'},{key:'payments',label:'Payments'},{key:'deadlines',label:'Deadlines'},{key:'announcements',label:'Announcements'},{key:'roles',label:'Officers'}];
+  var officers = DATA.members.filter(function(m){return m.officerRole;});
+  var cards = officers.map(function(o){
+    var p = officerPerms(o.id);
+    var chips = permsList.map(function(pm){
+      return '<label class="perm-chip"><input type="checkbox" '+(p[pm.key]?'checked':'')+(o.officerRole==='President'?' disabled':'')+' onchange="togglePerm(\''+o.id+'\',\''+pm.key+'\')"> '+pm.label+'</label>';
+    }).join('');
+    return '<div class="card" style="margin-bottom:14px;"><div class="ann-head" style="display:flex;justify-content:space-between;align-items:center;">'+
+      '<div><h3>'+esc(o.name)+'</h3><div class="sub-cell">'+esc(o.officerRole)+' · '+esc(o.email)+'</div></div>'+
+      (o.officerRole!=='President' ? '<button class="btn sm danger" onclick="demoteOfficer(\''+o.id+'\')">Step Down</button>' : '<span class="tag good">Full Access</span>')+
+      '</div><div class="perm-grid">'+chips+'</div></div>';
+  }).join('');
+  var nonOfficerOptions = DATA.members.filter(function(m){return !m.officerRole;}).map(function(m){ return '<option value="'+m.id+'">'+esc(m.name)+'</option>'; }).join('');
+  return '<div class="section-title"><h3>Officers &amp; Permissions</h3><button class="btn gold sm" onclick="toggleForm(\'addOfficer\')">'+(UI.formOpen.addOfficer?'Close':'+ Promote Member')+'</button></div>'+
+    '<div class="form-panel'+(UI.formOpen.addOfficer?'':' hidden')+'"><form onsubmit="promoteOfficer(event)">'+
+      '<div class="field-row"><div class="field"><label>Member</label><select name="member"><option value="">Select…</option>'+nonOfficerOptions+'</select></div>'+
+      '<div class="field"><label>Title</label><input type="text" name="title" placeholder="e.g. Fundraising Chair"></div></div>'+
+      '<p class="sub-cell" style="margin-bottom:10px;">They\'ll start with Dashboard access only — check boxes below afterward to grant Members, Payments, etc.</p>'+
+      '<button class="btn gold sm" type="submit">Grant Officer Role</button></form></div>'+
+    '<p class="sub-cell" style="margin-bottom:16px;">Each officer only sees the sections checked below. Unchecked sections show as locked in their sidebar.</p>'+cards;
+}
+
+function adminReports(){
+  var risk = atRiskMembers();
+  var avgAtt = Math.round(DATA.members.reduce(function(s,m){return s+attendancePct(m.id);},0)/DATA.members.length);
+  return '<div class="grid grid-3">'+
+    '<div class="card"><div class="eyebrow">Roster</div><div class="stat-big">'+DATA.members.length+'</div><div class="sub-cell">Total members</div></div>'+
+    '<div class="card"><div class="eyebrow">Engagement</div><div class="stat-big">'+avgAtt+'%</div><div class="sub-cell">Average attendance</div></div>'+
+    '<div class="card"><div class="eyebrow">Follow-up</div><div class="stat-big" style="color:var(--rust);">'+risk.length+'</div><div class="sub-cell">Members flagged at-risk</div></div></div>'+
+
+    '<div class="section-title"><h3>Club Settings</h3></div>'+
+    '<div class="card" style="margin-bottom:20px;">'+
+    '<form onsubmit="renameClub(event)" class="field-row" style="align-items:end;margin-bottom:0;">'+
+      '<div class="field"><label>Club name</label><input type="text" name="clubName" value="'+esc(DATA.club.name)+'"></div>'+
+      '<div><button class="btn ghost sm" type="submit">Save Name</button></div>'+
+    '</form>'+
+    '<div class="divider"></div>'+
+    '<div class="btn-row" style="align-items:center;justify-content:space-between;">'+
+      '<div><div class="eyebrow" style="margin-bottom:4px;">Invite Code</div><div class="stat-big" style="font-size:22px;">'+esc(DATA.club.joinCode)+'</div></div>'+
+      '<button class="btn ghost sm" onclick="regenerateCode()">Generate New Code</button>'+
+    '</div>'+
+    '<p class="sub-cell" style="margin-top:8px;">Regenerating invalidates the old code immediately — anyone who hasn\'t joined yet will need the new one.</p>'+
+    '</div>'+
+
+    '<div class="section-title"><h3>Sample Data</h3></div>'+
+    '<div class="card" style="margin-bottom:20px;"><p class="sub-cell" style="margin-bottom:12px;">Adds example members, deadlines, and announcements so you can see the app in action. Never touches your own account — safe to try, safe to ignore.</p>'+
+    '<button class="btn gold sm" onclick="loadSampleData()">Load Sample Data</button></div>'+
+
+    '<div class="section-title"><h3>Export</h3></div>'+
+    '<div class="card" style="margin-bottom:20px;"><p class="sub-cell" style="margin-bottom:12px;">Download a snapshot for grant reporting, budget review, or handoff to next year\'s officers.</p>'+
+    '<div class="btn-row"><button class="btn gold sm" onclick="exportCSV(\'members\')">Export Members CSV</button><button class="btn ghost sm" onclick="exportCSV(\'payments\')">Export Payments CSV</button></div></div>'+
+
+    '<div class="section-title"><h3>Danger Zone</h3></div>'+
+    '<div class="card" style="margin-bottom:16px;"><p class="sub-cell" style="margin-bottom:12px;">Erases every member (except you), deadline, payment record, and announcement in <b>'+esc(DATA.club.name)+'</b> — keeps your club name and invite code. This cannot be undone.</p>'+
+    '<button class="btn danger sm" onclick="eraseClubData()">'+(UI.resetArmed?'Click Again to Confirm — Erase Everything':'Erase All Club Data')+'</button></div>'+
+    (ME.member.officerRole==='President' ?
+      '<div class="card"><p class="sub-cell" style="margin-bottom:12px;">Permanently deletes <b>'+esc(DATA.club.name)+'</b> — the club, its invite code, and everyone\'s data. There is no undo. Everyone currently in the club, including you, loses access immediately.</p>'+
+      '<button class="btn danger sm" onclick="deleteClubForever()">'+(UI.deleteArmed?'Click Again to Confirm — Delete Club':'Delete This Club Permanently')+'</button></div>'
+      : '');
+}
+
+/* ---------- STUDENT VIEWS ---------- */
+function studentView(view){
+  if(view==='sdash') return studentDashboard();
+  if(view==='spay') return studentPay();
+  if(view==='sann') return studentAnnouncements();
+  if(view==='sevents') return studentEvents();
+  if(view==='satt') return studentAttendance();
+  if(view==='sprof') return studentProfile();
+  return '';
+}
+
+function studentDashboard(){
+  var id = ME.member.id, m = ME.member;
+  var mine = DATA.deadlines.filter(function(d){return d.type!=='event' && DATA.completion[d.id];}).map(function(d){
+    var n = daysUntil(d.dueDate), u = urgency(n), done = DATA.completion[d.id][id];
+    return {d:d,n:n,u:u,done:done};
+  });
+  var owed = mine.filter(function(x){return !x.done && x.d.amount>0;}).reduce(function(s,x){return s+x.d.amount;},0);
+  var pending = mine.filter(function(x){return !x.done;});
+  var cards = mine.map(function(x){
+    var action = '';
+    if(!x.done && x.d.type==='form'){ action = '<button class="btn gold sm" style="margin-top:10px;" onclick="acknowledgeForm(\''+x.d.id+'\')">Acknowledge</button>'; }
+    else if(!x.done && (x.d.type==='fee'||x.d.type==='competition')){ action = '<button class="btn ghost sm" style="margin-top:10px;" onclick="navigate(\'spay\')">Go to Pay Dues</button>'; }
+    return '<div class="card"><div class="eyebrow">'+esc(x.d.type)+' · due '+fmtDate(x.d.dueDate)+'</div><h3>'+esc(x.d.title)+'</h3>'+
+      '<div style="margin-top:10px;">'+(x.done?'<span class="tag good">Complete</span>':'<span class="tag '+(x.u==='crit'?'bad':'warn')+'">'+daysLabel(x.n)+'</span>')+'</div>'+action+'</div>';
+  }).join('');
+  var nextEvent = DATA.deadlines.find(function(d){return d.type==='event';});
+  var myRsvp = nextEvent && DATA.rsvp[nextEvent.id] ? DATA.rsvp[nextEvent.id][id] : undefined;
+  return renderTicker() + '<div class="grid grid-3">'+
+    '<div class="card"><div class="eyebrow">You Owe</div><div class="stat-big" style="color:'+(owed>0?'var(--rust)':'var(--turf)')+';">'+fmtMoney(owed)+'</div><div class="sub-cell">Across '+pending.filter(function(x){return x.d.amount>0;}).length+' unpaid item(s)</div></div>'+
+    '<div class="card"><div class="eyebrow">Pending Items</div><div class="stat-big">'+pending.length+'</div><div class="sub-cell">Due soon or overdue</div></div>'+
+    '<div class="card"><div class="eyebrow">Next Event</div><h3 style="font-family:Inter;font-size:15px;text-transform:none;">'+(nextEvent?esc(nextEvent.title):'—')+'</h3><div class="sub-cell">'+(nextEvent?fmtDate(nextEvent.dueDate)+' · your RSVP: '+(myRsvp||'not set'):'')+'</div></div></div>'+
+    '<div class="section-title"><h3>What\'s On Your Plate, '+esc(m.name.split(' ')[0])+'</h3></div>'+
+    '<div class="grid grid-3">'+cards+'</div>';
+}
+
+function studentPay(){
+  var id = ME.member.id;
+  var items = DATA.deadlines.filter(function(d){return (d.type==='fee'||d.type==='competition') && DATA.completion[d.id];});
+  var rows = items.map(function(d){
+    var done = DATA.completion[d.id][id], n = daysUntil(d.dueDate);
+    var action = done ? '<span class="sub-cell">Thanks!</span>' :
+      (DATA.stripeEnabled ? '<button class="btn gold sm" onclick="payWithStripe(\''+d.id+'\', this)">Pay with Stripe</button>' : '<span class="tag warn">Stripe not connected</span>');
+    return '<tr><td class="name-cell">'+esc(d.title)+'</td><td class="mono">'+fmtMoney(d.amount)+'</td>'+
+      '<td>'+(done?'<span class="tag good">Paid</span>':'<span class="tag '+(urgency(n)==='crit'?'bad':'warn')+'">'+daysLabel(n)+'</span>')+'</td><td class="btn-row">'+action+'</td></tr>';
+  }).join('');
+  var owed = items.filter(function(d){return !DATA.completion[d.id][id];}).reduce(function(s,d){return s+d.amount;},0);
+  return '<div class="card" style="margin-bottom:18px;"><div class="eyebrow">Balance</div><div class="stat-big" style="color:'+(owed>0?'var(--rust)':'var(--turf)')+';">'+fmtMoney(owed)+'</div><div class="sub-cell">Total currently owed</div>'+
+    '<div class="stripe-badge">Secured by Stripe — card details never touch this server.</div></div>'+
+    '<table><thead><tr><th>Fee</th><th>Amount</th><th>Status</th><th></th></tr></thead><tbody>'+rows+'</tbody></table>';
+}
+
+function studentAnnouncements(){
+  var id = ME.member.id;
+  var items = DATA.announcements.map(function(a){
+    var read = a.readBy.indexOf(id)!==-1;
+    return '<div class="ann-item'+(read?'':' unread')+'"><div class="ann-head"><div><h4>'+esc(a.title)+'</h4><div class="meta">'+fmtDate(a.date)+(a.ackRequired?' · Acknowledgment required':'')+'</div></div>'+
+      (read?'<span class="tag good">'+(a.ackRequired?'Acknowledged':'Read')+'</span>':'')+'</div><div class="body-text">'+esc(a.body)+'</div>'+
+      (read?'':'<button class="btn '+(a.ackRequired?'gold':'ghost')+' sm" onclick="markRead(\''+a.id+'\')">'+(a.ackRequired?'Acknowledge':'Mark as Read')+'</button>')+'</div>';
+  }).join('');
+  return items || '<div class="empty">No announcements yet.</div>';
+}
+
+function studentEvents(){
+  var id = ME.member.id;
+  var items = DATA.deadlines.filter(function(d){return d.type==='event';}).map(function(d){
+    var mine = DATA.rsvp[d.id] ? DATA.rsvp[d.id][id] : undefined;
+    return '<div class="card" style="margin-bottom:12px;"><div class="eyebrow">'+fmtDate(d.dueDate)+'</div><h3>'+esc(d.title)+'</h3>'+
+      '<div class="rsvp-row" style="margin-top:12px;">'+
+      '<button class="rsvp-btn'+(mine==='yes'?' sel-yes':'')+'" onclick="rsvpEvent(\''+d.id+'\',\'yes\')">Yes</button>'+
+      '<button class="rsvp-btn'+(mine==='maybe'?' sel-maybe':'')+'" onclick="rsvpEvent(\''+d.id+'\',\'maybe\')">Maybe</button>'+
+      '<button class="rsvp-btn'+(mine==='no'?' sel-no':'')+'" onclick="rsvpEvent(\''+d.id+'\',\'no\')">Can\'t Go</button></div></div>';
+  }).join('');
+  return items || '<div class="empty">No events open for RSVP right now.</div>';
+}
+
+function studentAttendance(){
+  var m = ME.member; var pct = attendancePct(m.id);
+  var sortedDates = DATA.attendanceDates.slice().sort(function(a,b){ return parseDate(b.date)-parseDate(a.date); });
+  var rows = sortedDates.map(function(d){
+    var present = DATA.attendance[d.id] && DATA.attendance[d.id][m.id];
+    return '<div class="kv"><span class="k">'+esc(d.label)+' · '+fmtDate(d.date)+'</span><span class="v">'+(present?'<span class="tag good">Present</span>':'<span class="tag bad">Absent</span>')+'</span></div>';
+  }).join('');
+  return '<div class="grid grid-2"><div class="card"><div class="eyebrow">Season Attendance</div><div class="stat-big" style="color:'+(pct>=75?'var(--turf)':pct>=50?'var(--amber)':'var(--rust)')+';">'+pct+'%</div><div class="sub-cell">'+DATA.attendanceDates.length+' recorded '+(DATA.attendanceDates.length===1?'date':'dates')+'</div></div>'+
+    '<div class="card">'+(rows || '<div class="empty">No attendance recorded yet.</div>')+'</div></div>';
+}
+
+function studentProfile(){
+  var m = ME.member;
+  var years = ['Freshman','Sophomore','Junior','Senior'];
+  var yearOptions = years.map(function(y){ return '<option'+(m.year===y?' selected':'')+'>'+y+'</option>'; }).join('') + '<option value="—"'+(m.year==='—'?' selected':'')+'>Prefer not to say</option>';
+  return '<div class="card" style="max-width:520px;margin-bottom:20px;"><form onsubmit="saveProfile(event)">'+
+    '<div class="field" style="margin-bottom:12px;"><label>Name</label><input type="text" value="'+esc(m.name)+'" disabled></div>'+
+    '<div class="field" style="margin-bottom:12px;"><label>Email</label><input type="text" value="'+esc(m.email)+'" disabled></div>'+
+    '<div class="field" style="margin-bottom:12px;"><label>Year</label><select name="year">'+yearOptions+'</select></div>'+
+    '<div class="field" style="margin-bottom:12px;"><label>Phone</label><input type="text" name="phone" value="'+esc(m.phone)+'"></div>'+
+    '<div class="field" style="margin-bottom:16px;"><label>Emergency contact</label><input type="text" name="emergency" value="'+esc(m.emergency)+'"></div>'+
+    '<button class="btn gold sm" type="submit">Save Changes</button></form></div>'+
+    '<div class="card" style="max-width:520px;"><div class="eyebrow">Danger Zone</div>'+
+    '<p class="sub-cell" style="margin-bottom:12px;">Removes you from '+esc(DATA.club.name)+'\'s roster. You can rejoin later with the invite code.</p>'+
+    '<button class="btn danger sm" onclick="leaveClub()">'+(UI.leaveArmed?'Click Again to Confirm — Leave Club':'Leave This Club')+'</button></div>';
+}
+
+/* =====================================================================
+   INIT
+===================================================================== */
+boot();
+</script>
+</body>
+</html>
